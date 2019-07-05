@@ -1,0 +1,70 @@
+MKOCTFILE ?= @MKOCTFILE@
+OCTAVE    ?= @OCTAVE@
+SED       ?= @SED@
+
+HDF5_CPPFLAGS = @HDF5_CPPFLAGS@
+HDF5_LDFLAGS  = @HDF5_LDFLAGS@
+HDF5_LIBS     = @HDF5_LIBS@
+PKG_CPPFLAGS  = @PKG_CPPFLAGS@
+
+OCT_FILES = \
+  __errcore__.oct \
+  __gfweight__.oct \
+  cyclgen.oct \
+  cyclpoly.oct \
+  genqamdemod.oct \
+  gf.oct \
+  isprimitive.oct \
+  primpoly.oct \
+  syndtable.oct
+
+GF_OBJECTS = \
+  galois-def.o \
+  galois.o \
+  galoisfield.o \
+  gf.o \
+  op-gm-gm.o \
+  op-gm-m.o \
+  op-gm-s.o \
+  op-m-gm.o \
+  op-s-gm.o \
+  ov-galois.o
+
+GF_HEADERS = \
+  galois-def.h \
+  galois-ops.h \
+  galois.h \
+  galoisfield.h \
+  ov-galois.h
+
+OCT_SOURCES = $(patsubst %.oct,%.cc,$(OCT_FILES))
+
+all: $(OCT_FILES)
+
+%.o: %.cc
+	$(MKOCTFILE) $(PKG_CPPFLAGS) -c $< -o $@
+
+%.oct: %.cc
+	$(MKOCTFILE) $(PKG_CPPFLAGS) $< -o $@
+
+gf.oct: $(GF_OBJECTS)
+	$(MKOCTFILE) $(HDF5_LDFLAGS) $^ $(HDF5_LIBS) -o $@
+
+ov-galois.o: PKG_CPPFLAGS += $(HDF5_CPPFLAGS)
+
+$(GF_OBJECTS): $(GF_HEADERS)
+
+PKG_ADD PKG_DEL: $(OCT_SOURCES)
+	$(SED) -n -e 's/.*$@: \(.*\)/\1/p' $^ > $@-t
+	mv $@-t $@
+
+clean:
+	-rm -f *.o *.oct PKG_*
+
+distclean: clean
+	-rm -f Makefile config.*
+
+maintainer-clean: distclean
+	-rm -rf autom4te.cache configure
+
+.PHONY: all clean distclean maintainer-clean

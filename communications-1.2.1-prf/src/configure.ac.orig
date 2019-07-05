@@ -1,0 +1,119 @@
+AC_PREREQ([2.60])
+AC_INIT([Octave-Forge communications package], [0])
+AC_ARG_VAR([MKOCTFILE], [mkoctfile compiler helper command])
+AC_ARG_VAR([OCTAVE], [Octave interpreter command])
+AC_CHECK_PROG([MKOCTFILE], mkoctfile, mkoctfile, [])
+AC_CHECK_PROG([OCTAVE], octave, octave, [])
+AC_PROG_CXX
+AC_PROG_SED
+
+comm_OCT_EVAL="$OCTAVE --norc --no-history --silent --eval"
+
+AC_CACHE_CHECK([for Octave HDF5 preprocessor flags],
+  [comm_cv_hdf5_cppflags],
+  [comm_cv_hdf5_cppflags=`$comm_OCT_EVAL 'disp(octave_config_info.HDF5_CPPFLAGS)' 2>/dev/null`])
+AC_CACHE_CHECK([for Octave HDF5 linker flags],
+  [comm_cv_hdf5_ldflags],
+  [comm_cv_hdf5_ldflags=`$comm_OCT_EVAL 'disp(octave_config_info.HDF5_LDFLAGS)' 2>/dev/null`])
+AC_CACHE_CHECK([for Octave HDF5 libraries],
+  [comm_cv_hdf5_libs],
+  [comm_cv_hdf5_libs=`$comm_OCT_EVAL 'disp(octave_config_info.HDF5_LIBS)' 2>/dev/null`])
+AC_SUBST([HDF5_CPPFLAGS], [$comm_cv_hdf5_cppflags])
+AC_SUBST([HDF5_LDFLAGS], [$comm_cv_hdf5_ldflags])
+AC_SUBST([HDF5_LIBS], [$comm_cv_hdf5_libs])
+
+AC_SUBST([PKG_CPPFLAGS], ["-DGALOIS_DISP_PRIVATES"])
+
+comm_CXXFLAGS=`$MKOCTFILE -p ALL_CXXFLAGS`
+
+AC_CACHE_CHECK([for octave_hdf5_id type],
+  [comm_cv_octave_hdf5_id_type],
+  [comm_save_CPPFLAGS=$CPPFLAGS
+   comm_save_CXXFLAGS=$CXXFLAGS
+   CPPFLAGS="$CPPFLAGS $HDF5_CPPFLAGS"
+   CXXFLAGS="$CXXFLAGS $comm_CXXFLAGS"
+   AC_LANG_PUSH(C++)
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+       #include <octave/config.h>
+       #include <octave/ov-base.h>
+       ]], [[
+       octave_hdf5_id x;
+       ]])],
+     [comm_cv_octave_hdf5_id_type=yes],
+     [comm_cv_octave_hdf5_id_type=no])
+   AC_LANG_POP(C++)
+   CPPFLAGS=$comm_save_CPPFLAGS
+   CXXFLAGS=$comm_save_CXXFLAGS])
+if test $comm_cv_octave_hdf5_id_type = yes; then
+  PKG_CPPFLAGS="$PKG_CPPFLAGS -DHAVE_OCTAVE_HDF5_ID_TYPE=1"
+fi
+
+AC_CACHE_CHECK([for octave_base_value::gripe_load and octave_base_value::gripe_save],
+  [comm_cv_octave_base_value_gripe_load_save],
+  [comm_save_CPPFLAGS=$CPPFLAGS
+   comm_save_CXXFLAGS=$CXXFLAGS
+   CPPFLAGS="$CPPFLAGS $HDF5_CPPFLAGS"
+   CXXFLAGS="$CXXFLAGS $comm_CXXFLAGS"
+   AC_LANG_PUSH(C++)
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+       #include <octave/config.h>
+       #include <octave/ov-base.h>
+       class foo : public octave_base_value
+       {
+       public:
+         foo () {}
+         void func () { gripe_load ("func"); gripe_save ("func"); }
+       };
+       ]], [[
+       foo x;
+       ]])],
+     [comm_cv_octave_base_value_gripe_load_save=yes],
+     [comm_cv_octave_base_value_gripe_load_save=no])
+   AC_LANG_POP(C++)
+   CPPFLAGS=$comm_save_CPPFLAGS
+   CXXFLAGS=$comm_save_CXXFLAGS])
+if test $comm_cv_octave_base_value_gripe_load_save = yes; then
+  PKG_CPPFLAGS="$PKG_CPPFLAGS -DHAVE_OCTAVE_BASE_VALUE_GRIPE_LOAD_SAVE=1"
+fi
+
+AC_CACHE_CHECK([whether octave_base_value::print is const-qualified],
+  [comm_cv_octave_base_value_print_const_qualified],
+  [comm_save_CPPFLAGS=$CPPFLAGS
+   comm_save_CXXFLAGS=$CXXFLAGS
+   CPPFLAGS="$CPPFLAGS $HDF5_CPPFLAGS"
+   CXXFLAGS="$CXXFLAGS $comm_CXXFLAGS"
+   AC_LANG_PUSH(C++)
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+       #include <iostream>
+       #include <octave/config.h>
+       #include <octave/ov-base.h>
+       ]], [[
+       const octave_base_value x; x.print (std::cout);
+       ]])],
+     [comm_cv_octave_base_value_print_const_qualified=yes],
+     [comm_cv_octave_base_value_print_const_qualified=no])
+   AC_LANG_POP(C++)
+   CPPFLAGS=$comm_save_CPPFLAGS
+   CXXFLAGS=$comm_save_CXXFLAGS])
+if test $comm_cv_octave_base_value_print_const_qualified = yes; then
+  PKG_CPPFLAGS="$PKG_CPPFLAGS -DHAVE_OCTAVE_BASE_VALUE_PRINT_CONST=1"
+fi
+
+comm_save_CXXFLAGS=$CXXFLAGS
+CXXFLAGS="$CXXFLAGS $comm_CXXFLAGS"
+AC_LANG_PUSH(C++)
+AC_CHECK_HEADER([octave/ls-oct-ascii.h], [PKG_CPPFLAGS="$PKG_CPPFLAGS -DHAVE_OCTAVE_ASCII_H=1"], [], 
+[
+#include <octave/config.h>
+#incude <octave/ov.h>
+])
+AC_CHECK_HEADER([octave/ls-oct-text.h], [PKG_CPPFLAGS="$PKG_CPPFLAGS -DHAVE_OCTAVE_TEXT_H=1"], [], 
+[
+#include <octave/config.h>
+#include <octave/ov.h>
+])
+AC_LANG_POP(C++)
+CXXFLAGS=$comm_save_CXXFLAGS
+
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT

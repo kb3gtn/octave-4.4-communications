@@ -1,0 +1,48 @@
+--- src/ov-galois.cc	Thu Apr 14 01:07:22 2016 +0100
++++ src/ov-galois.cc	Fri May 04 15:59:27 2018 -0400
+@@ -20,21 +20,42 @@
+ 
+ #include <iostream>
+ 
+-#include <octave/config.h>
++#include <octave/oct.h>
+ #include <octave/byte-swap.h>
+ #include <octave/gripes.h>
+ #include <octave/lo-ieee.h>
+-#include <octave/oct-hdf5.h>
+ #include <octave/oct-locbuf.h>
+ #include <octave/oct-obj.h>
+ #include <octave/ov.h>
+ #include <octave/pr-output.h>
+ 
+-#include <octave/ls-oct-ascii.h>
++#if defined(HAVE_OCTAVE_LS_OCT_TEXT_H)
++#  include <octave/ls-oct-text.h>
++#else
++#  include <octave/ls-oct-ascii.h>
++#endif
+ 
+ #include "galois.h"
+ #include "ov-galois.h"
+ 
++#if defined (HAVE_HDF5)
++#  if defined (HAVE_HDF5_H)
++#    include <hdf5.h>
++#  endif
++#  if defined (HAVE_OCTAVE_OCT_HDF5_TYPES_H)
++#    include "oct-hdf5-types.h"
++#  endif
++#  if defined (OCTAVE_ENABLE_64)
++#    define H5T_NATIVE_IDX H5T_NATIVE_INT64
++#  else
++#    define H5T_NATIVE_IDX H5T_NATIVE_INT
++#  endif
++#endif
++
++#if ! defined (X_CAST)
++#  define X_CAST(T, E) (T) (E)
++#endif
++
+ #if defined (DEFINE_OCTAVE_ALLOCATOR)
+ DEFINE_OCTAVE_ALLOCATOR (octave_galois);
+ #endif

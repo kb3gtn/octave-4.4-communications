@@ -1,0 +1,56 @@
+Summary of important user-visible changes for communications 1.2.1:
+------------------------------------------------------------------
+
+ ** The communications package is now compatible with Octave 4.0.0.
+
+Summary of important user-visible changes for communications 1.2.0:
+------------------------------------------------------------------
+
+ ** The following functions are new:
+
+      dpcmdeco   istrellis
+      dpcmenco   poly2trellis
+      dpcmopt
+
+ ** The function `convenc' has been completely rewritten to be compatible
+    with Matlab.
+
+ ** The plotting functions `eyediagram' and `scatterplot' have improved
+    Matlab compatibility.
+
+ ** Fixed a bug in `egolaydec' which gave an error when there were more
+    than the three allowed erroneous bits, rather than setting the
+    error flag.
+
+ ** Fixed a bug in `oct2dec' to handle large numbers properly.
+
+ ** Fixed a bug in `quantiz' which gave incorrect results when the lookup
+    table has one element.
+
+Summary of important user-visible changes for communications 1.1.1:
+------------------------------------------------------------------
+
+ ** The function `marcumq' has been moved to the signal package
+
+ ** communications is no longer dependent on the image package
+
+ ** The following functions are new:
+
+      convenc
+
+ ** The following functions have improved Matlab compatibility and tests:
+      bi2de
+      de2bi
+      oct2dec
+
+ ** The function `reedmullerdec' had a bug fix introduced on the
+    previous release
+
+ ** The function `huffmandeco' has been rewritten and made more
+    efficient and should perform faster
+
+ ** Fixed bug in `glu' which made it unusable
+
+ ** Use of deprecated functions has been removed
+
+ ** Package is no longer automatically loaded.
